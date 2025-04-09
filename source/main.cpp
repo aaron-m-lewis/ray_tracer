@@ -5,16 +5,16 @@
 #include <iostream>
 
 double hit_sphere(const point3& center, double radius, const ray& r) {
+    // say b = -2h
     vec3 oc = center - r.origin();
-    auto a = dot(r.direction(), r.direction());
-    auto b = -2.0 * dot(r.direction(), oc);
-    auto c = dot(oc, oc) - (radius * radius);
-    auto discriminant = (b * b) - (4 * a * c);
-    
+    auto a = r.direction().length_squared();
+    auto h = dot(r.direction(), oc);
+    auto c = oc.length_squared() - (radius * radius);
+    auto discriminant = (h * h) - (a * c);
     if (discriminant < 0) { // D > 0 two real soln, D = 0 one real soln, D < 0 no real solutions
         return -1;
     } else {
-        return (-b - std::sqrt(discriminant)) / (2.0 * a);  // First point hit by ray
+        return (h - std::sqrt(discriminant)) / a;    // First point hit by ray
     }
 }
 
