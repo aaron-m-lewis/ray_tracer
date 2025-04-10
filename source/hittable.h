@@ -25,7 +25,7 @@ class hittable {
         // virtual keyword enables runtime polymorphism
         // “When calling this function on a pointer or reference to a base class, 
         // use the derived class’s version of the function — if it exists.”
-        virtual bool hit(const ray& r, double ray_tmin, double ray_tmax, hit_record& rec) const = 0;
+        virtual bool hit(const ray& r, interval ray_t, hit_record& rec) const = 0;
 };
 
 #endif
