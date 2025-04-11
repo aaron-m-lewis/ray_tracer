@@ -20,23 +20,35 @@ class camera {
         double defocus_angle = 0;               // variation angle of rays thru each pixel
         double focus_dist = 10;                 // distance from lookform to plane of perfect focus
 
-        void render(const hittable& world) {
+        void render(const hittable& world, std::ostream& out = std::cout) {
             initialize();
 
-            std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+            out << "P3\n" << image_width << ' ' << image_height << "\n255\n";
 
             for (int j = 0; j < image_height; j++) {
                 // \r is carriage return, which goes back to the beginning of current line
                 // this ensures that the message is overwritten, not on a newline each time
                 // std::flush forces the output buffer to be written to terminal immediately
-                std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
+                std::clog << "\rProgress: " << int(100.0 * j / image_height) << "%   " << std::flush;
+                int bar_width = 50; // Width of the progress bar
+                float progress = float(j) / image_height;
+                int pos = int(bar_width * progress);
+
+                std::clog << "\r[";
+                for (int i = 0; i < bar_width; ++i) {
+                    if (i < pos) std::clog << "=";
+                    else if (i == pos) std::clog << ">";
+                    else std::clog << " ";
+                }
+                std::clog << "] " << int(progress * 100.0) << "%   " << std::flush;
+
                 for (int i = 0; i < image_width; i++) {
                     color pixel_color(0, 0, 0);
                     for (int sample = 0; sample < samples_per_pixel; sample++) {
                         ray r = get_ray(i, j);
                         pixel_color += ray_color(r, max_depth, world);
                     }
-                    write_color(std::cout, pixel_samples_scale * pixel_color);
+                    write_color(out, pixel_samples_scale * pixel_color);
                 }
             }
 
@@ -58,7 +70,7 @@ class camera {
         void initialize() {
             // Calculate image properties
             image_height = int(image_width / aspect_ratio);
-            image_height = (image_height < 1) ? 1 : image_height;
+            image_height = std::max(1, static_cast<int>(std::round(image_width / aspect_ratio)));
 
             pixel_samples_scale = 1.0 / samples_per_pixel;
 
@@ -108,7 +120,7 @@ class camera {
 
         vec3 sample_square() const {
             // returns vector to random point within [-.5, -.5]-[+.5, +.5] square
-            return vec3(random_double() -0.5, random_double() -0.5, 0);
+            return vec3(random_double(-0.5, 0.5), random_double(-0.5, 0.5), 0);
         }
 
         point3 defocus_disk_sample() const {
